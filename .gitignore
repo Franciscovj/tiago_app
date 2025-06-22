@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+venv/
+env/
+
+# Streamlit temporary files
+.streamlit/
+
+# OS files
+.DS_Store
+
+# Python environment files
+*.env
+*.venv
+
+# Jupyter Notebook checkpoints (caso use algum dia)
+.ipynb_checkpoints/
+
+# VSCode settings (caso use)
+.vscode/
