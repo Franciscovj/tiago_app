@@ -1,0 +1,115 @@
+{
+    "casa_favorito": [
+        {
+            "type": "column_range",
+            "column": "Odd_H_Open",
+            "value": [
+                1.01,
+                2.04
+            ],
+            "condition": "==",
+            "type_display_name": "Range da Coluna"
+        },
+        {
+            "type": "column_range",
+            "column": "pos.away",
+            "value": [
+                10.62,
+                24.0
+            ],
+            "condition": "==",
+            "type_display_name": "Range da Coluna"
+        }
+    ],
+    "over_gols": [
+        {
+            "type": "column_range",
+            "column": "Odd 2.5FT",
+            "value": [
+                1.03,
+                1.79
+            ],
+            "condition": "==",
+            "type_display_name": "Range da Coluna"
+        },
+        {
+            "type": "column_value",
+            "column": "Odd_H_Open",
+            "value": 1.8,
+            "condition": "<",
+            "type_display_name": "Valor da Coluna"
+        }
+    ],
+    "btts_y": [
+        {
+            "type": "column_range",
+            "column": "DIF_BTS",
+            "value": [
+                -8.8,
+                4.16
+            ],
+            "condition": "==",
+            "type_display_name": "Range da Coluna"
+        },
+        {
+            "type": "column_range",
+            "column": "P-OddBTS",
+            "value": [
+                0.59,
+                0.82
+            ],
+            "condition": "==",
+            "type_display_name": "Range da Coluna"
+        }
+    ],
+    "over_35": [
+        {
+            "type": "column_comparison",
+            "column": "qtj_jogos",
+            "value": null,
+            "condition": "<=",
+            "type_display_name": "Compara\u00e7\u00e3o entre Colunas",
+            "column1": "Odd_H_Open",
+            "column2": "Odd_A_Open"
+        },
+        {
+            "type": "column_range",
+            "column": "ODD 3.5FT",
+            "value": [
+                1.14,
+                2.5
+            ],
+            "condition": "==",
+            "type_display_name": "Range da Coluna"
+        }
+    ],
+    "empate_01": [
+        {
+            "type": "column_range",
+            "type_display_name": "Range da Coluna",
+            "column": "Odd_D_Open",
+            "value": [
+                2.4,
+                4.12
+            ],
+            "condition": "=="
+        },
+        {
+            "type": "column_range",
+            "type_display_name": "Range da Coluna",
+            "column": "Odd_H_Open",
+            "value": [
+                1.01,
+                2.7
+            ],
+            "condition": "=="
+        },
+        {
+            "type": "column_comparison",
+            "type_display_name": "Compara\u00e7\u00e3o entre Colunas",
+            "column1": "Odd_H_Open",
+            "column2": "Odd_A_Open",
+            "condition": "<"
+        }
+    ]
+}
