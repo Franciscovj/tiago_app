@@ -230,12 +230,18 @@ def display_filter_controls_in_main(df_columns):
                             c_idx = conds.index(f_config.get('condition','==')) if f_config.get('condition','==') in conds else 0
                             f_config['condition'] = st.selectbox("Cond.", conds, index=c_idx, key=f"cv_cond_num_val_{i}", label_visibility="collapsed")
                         with cc_val[2]:
-                            # Ensure 'value' exists in f_config before trying to use it, default to 0.0 for numeric
-                            val_num = f_config.get('value', 0.0)
-                            try: # Try to convert to float if it's not already, for number_input
-                                val_num = float(val_num) if not isinstance(val_num, (int, float)) else val_num
-                            except ValueError:
+                            # Ensure 'value' exists in f_config and handle None before float conversion
+                            val_num = f_config.get('value') # Get value, might be None
+                            if val_num is None:
+                                val_num = 0.0 # Default to 0.0 if None
+
+                            try:
+                                # Convert to float if it's not already an int or float
+                                if not isinstance(val_num, (int, float)):
+                                    val_num = float(val_num)
+                            except (ValueError, TypeError): # Catch TypeError here too
                                 val_num = 0.0 # Default if conversion fails
+
                             f_config['value'] = st.number_input("Valor", value=val_num, key=f"cv_val_num_val_{i}", label_visibility="collapsed", format="%g")
                     else: # Categorical / Text
                         conds = ['==', '!=']
