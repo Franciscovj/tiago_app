@@ -1,5 +1,5 @@
 import streamlit as st
-import pandas as pd # Keep pandas for DataFrame checks if any remain in main, or for type hints
+import pandas as pd
 
 # Import functions from the new modules
 from state_helpers import initialize_session_state
@@ -9,47 +9,49 @@ from ui_controls import (
     display_save_load_filter_sets_controls
 )
 from filter_processing import apply_filters_to_dataframe
-st.set_page_config(layout="wide") 
-APP_TITLE = "Filtro Dinâmico e Análise de Arquivos" # Global constant
 
-# --- Main Application Logic ---
-def main():
+# Initialize session state ONCE at the very beginning
+initialize_session_state() 
+
+APP_TITLE = "Filtro Dinâmico e Análise de Arquivos"
+
+# Page Configuration - should be the first Streamlit command after state init
+st.set_page_config(
+    page_title=APP_TITLE,
+    layout="wide",
+    initial_sidebar_state="expanded" 
+)
+
+# --- Main Application Logic (Página Principal) ---
+def main_page():
     st.title(APP_TITLE)
-    initialize_session_state() # From state_helpers
 
-    # --- Sidebar for Save/Load Operations ---
-    # Title for this section is now part of display_save_load_filter_sets_controls
-    # or can be added here if preferred.
-    # For now, let the function handle its own subheaders.
-    # with st.sidebar:
-    # st.markdown("## 💾 Gerenciar Filtros") 
-
-    # --- Main Panel ---
-    display_file_uploader() # From ui_controls
+    # File uploader will use the default key: "default_file_uploader_widget"
+    display_file_uploader() 
     
     current_df = st.session_state.get('df')
 
+    # --- Sidebar for Save/Load Operations ---
+    # This will make these controls appear in the Streamlit sidebar when this page is active
+    with st.sidebar:
+        st.header("Gerenciar Filtros") # Changed from "Gerenciar Filtros Ativos" for clarity
+        display_save_load_filter_sets_controls()
+
     if current_df is not None and not current_df.empty:
         active_filters = st.session_state.get('filters', [])
-        df_filtered = apply_filters_to_dataframe(current_df, active_filters) # From filter_processing
+        df_filtered = apply_filters_to_dataframe(current_df, active_filters)
 
         st.subheader("📊 Visualização dos Dados")
         st.dataframe(df_filtered, height=300) 
         st.markdown(f"**Resumo:** Original: `{len(current_df)}` linhas | Filtrado: `{len(df_filtered)}` linhas")
 
-        # Filter configuration section moved to main body
-        display_filter_controls_in_main(list(current_df.columns)) # From ui_controls
+        display_filter_controls_in_main(list(current_df.columns))
 
-        if active_filters: # Display active filters (JSON)
+        if active_filters:
             with st.expander("Ver Definição JSON dos Filtros Ativos", expanded=False):
                 st.json(active_filters) 
-        
-        # display_save_load_filter_sets_controls is now called here, ensuring df exists
-        # It internally uses st.sidebar.
-        display_save_load_filter_sets_controls() # From ui_controls
-            
     else:
         st.info("✨ Bem-vindo! Carregue um arquivo (XLSX, CSV, ODS) para começar.")
 
 if __name__ == "__main__":
-    main()
+    main_page()

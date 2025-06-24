@@ -1,30 +1,24 @@
 import streamlit as st
 import pandas as pd
-
-# Import functions from the main application modules
-# Assuming app.py and other modules are in the parent directory
 import sys
-sys.path.append('..') # Add parent directory to path to import sibling modules
 
-from state_helpers import initialize_session_state, load_all_filter_sets
+# Add parent directory to path to import sibling modules
+sys.path.append('..') 
+
+from state_helpers import load_all_filter_sets 
 from ui_controls import display_file_uploader
 from filter_processing import apply_filters_to_dataframe
 
 def run_analysis_page():
-    # Page config is set in app.py
     st.title("📊 Análise de Impacto de Filtros Salvos")
 
-    # Session state (like st.session_state.df) is shared and initialized by app.py.
-    # The file uploader in the sidebar will operate on this shared st.session_state.df.
-    # This means loading a file on one page makes it available on the other, which is the current design.
-
-    # --- Sidebar for Data Upload on this specific page ---
-    # Streamlit's main sidebar is used for page navigation and, on the main page, for filter set management.
-    # Here, we are adding page-specific controls to that same sidebar.
-    with st.sidebar: # Refers to the main Streamlit sidebar
-        st.divider() # Optional: visual separator from navigation links or other sidebar items
+    # Session state (df, filters, etc.) is initialized by app.py and shared.
+    # File uploader for this page, with a unique key.
+    with st.sidebar:
+        st.divider() 
         st.header("Carregar Dados para Análise")
-        display_file_uploader(uploader_key="analysis_page_uploader") # Uses and updates st.session_state.df
+        # Ensure this key is DIFFERENT from the default key used in app.py
+        display_file_uploader(uploader_key="analysis_page_uploader") 
 
     current_df = st.session_state.get('df')
 
@@ -42,7 +36,6 @@ def run_analysis_page():
         selected_filter_names = st.multiselect(
             "Escolha um ou mais filtros para analisar:",
             options=filter_names,
-            # default=filter_names[0] if filter_names else None # Optional: default selection
         )
 
         if selected_filter_names:
@@ -50,46 +43,29 @@ def run_analysis_page():
             st.subheader("Resultados da Análise")
 
             results_data = []
+            # Use a fresh copy of the original DataFrame for each filter analysis
+            df_for_analysis = current_df.copy() 
+
             for name in selected_filter_names:
                 filter_config = all_saved_filters.get(name)
                 if filter_config:
-                    # Apply this specific filter set to a fresh copy of the original DataFrame
-                    df_filtered_for_analysis = apply_filters_to_dataframe(current_df.copy(), filter_config)
-                    line_count = len(df_filtered_for_analysis)
+                    # Apply this specific filter set
+                    df_filtered_for_this_analysis = apply_filters_to_dataframe(df_for_analysis, filter_config)
+                    line_count = len(df_filtered_for_this_analysis)
                     results_data.append({"Nome do Filtro": name, "Quantidade de Jogos (Linhas)": line_count})
             
             if results_data:
                 results_df = pd.DataFrame(results_data)
                 st.dataframe(results_df, use_container_width=True)
             else:
-                st.info("Nenhum filtro válido selecionado ou os filtros selecionados não puderam ser aplicados.")
-        else:
+                # This case might occur if selected_filter_names is not empty but all_saved_filters.get(name) fails for all.
+                st.info("Não foi possível aplicar os filtros selecionados ou os filtros não produziram resultados.")
+        elif all_saved_filters : # Only show this if there are filters to select from but none were selected
             st.info("Selecione pelo menos um filtro salvo para ver a análise.")
+        # If no saved filters at all, the earlier message "Nenhum conjunto de filtros..." is shown.
 
     else:
         st.info("✨ Carregue um arquivo (XLSX, CSV, ODS) na barra lateral para começar a análise.")
 
-if __name__ == "__main__":
-    # This allows running this page standalone for testing if needed,
-    # but it's primarily designed to be run via `streamlit run app.py`
-    
-    # Call the main function for the page
-    run_analysis_page()
-
-# To ensure that initialize_session_state() is called when app.py is the entry point
-# and this page is navigated to, app.py should handle the initialization.
-# If running this page standalone (python pages/02_Analise_Filtros.py), 
-# then the __main__ block below would be useful.
-if __name__ == "__main__":
-    # This block is for testing this page in isolation.
-    # In a real multi-page app, app.py initializes session state.
-    print("Executando 02_Analise_Filtros.py como script principal (para teste).")
-    print("Certifique-se de que 'app.py' inicializa o estado da sessão em um cenário de aplicativo de várias páginas.")
-    
-    # For standalone testing, we need to ensure session state is initialized.
-    # This might conflict if not managed carefully with how Streamlit handles session state across reruns.
-    if 'df' not in st.session_state: # Basic check
-        initialize_session_state() 
-        print("Estado da sessão inicializado para teste standalone.")
-    
-    run_analysis_page()
+# This ensures the page's content is rendered when Streamlit navigates to it.
+run_analysis_page()
