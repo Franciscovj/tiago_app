@@ -4,39 +4,98 @@ import pandas as pd
 # Note: SAVED_FILTERS_FILE and other constants might need to be passed or defined here too if not globally accessible
 # For now, assuming they might be passed or handled by importing from a config module if this grows further.
 
-def display_file_uploader():
-    """Displays the file uploader and handles file processing.
-    Updates st.session_state.df with the data from the selected sheet.
+def display_file_uploader(uploader_key: str = "default_file_uploader_widget"):
+    """Displays the file uploader and handles file processing for XLSX, CSV, and ODS.
+    Updates st.session_state.df with the data from the selected file/sheet.
+
+    Args:
+        uploader_key (str, optional): A unique key for the file uploader widget. 
+                                      Defaults to "default_file_uploader_widget".
     """
     uploaded_file = st.file_uploader(
-        "Escolha um arquivo XLSX", type="xlsx", key="file_uploader_widget"
+        "Escolha um arquivo (XLSX, CSV, ODS)", 
+        type=["xlsx", "csv", "ods"], 
+        key=uploader_key
     )
     if uploaded_file is not None:
-        if st.session_state.uploaded_file_name != uploaded_file.name:
+        # Determine file type by extension, as mime types can be ambiguous for ods
+        file_extension = uploaded_file.name.split('.')[-1].lower()
+        new_file_uploaded = st.session_state.uploaded_file_name != uploaded_file.name
+
+        if new_file_uploaded:
             st.session_state.uploaded_file_name = uploaded_file.name
             st.session_state.df = None            
             st.session_state.filters = []          
-            st.session_state.selected_sheet = None 
+            st.session_state.selected_sheet = None # Reset sheet selection on new file
+
         try:
-            xls = pd.ExcelFile(uploaded_file)
-            sheet_names = xls.sheet_names
-            current_sheet_index = 0
-            if st.session_state.selected_sheet and st.session_state.selected_sheet in sheet_names:
-                current_sheet_index = sheet_names.index(st.session_state.selected_sheet)
-            selected_sheet_name = st.selectbox(
-                "Escolha uma planilha", sheet_names, index=current_sheet_index, key="sheet_selector_widget"
-            )
-            if selected_sheet_name and (st.session_state.selected_sheet != selected_sheet_name or st.session_state.df is None):
-                st.session_state.selected_sheet = selected_sheet_name
-                st.session_state.df = pd.read_excel(xls, sheet_name=selected_sheet_name)
-                st.rerun() 
+            df_to_load = None
+            if file_extension == "xlsx":
+                xls = pd.ExcelFile(uploaded_file)
+                sheet_names = xls.sheet_names
+                
+                if len(sheet_names) > 1:
+                    current_sheet_index = 0
+                    if st.session_state.selected_sheet and st.session_state.selected_sheet in sheet_names:
+                        current_sheet_index = sheet_names.index(st.session_state.selected_sheet)
+                    selected_sheet_name = st.selectbox(
+                        "Escolha uma planilha", 
+                        sheet_names, 
+                        index=current_sheet_index, 
+                        key=f"{uploader_key}_sheet_selector" # Dynamic key for sheet selector
+                    )
+                else:
+                    selected_sheet_name = sheet_names[0]
+
+                if new_file_uploaded or st.session_state.selected_sheet != selected_sheet_name or st.session_state.df is None:
+                    st.session_state.selected_sheet = selected_sheet_name
+                    df_to_load = pd.read_excel(xls, sheet_name=selected_sheet_name)
+
+            elif file_extension == "ods":
+                # For ODS, pandas might need the odf engine. Ensure odfpy is installed.
+                xls = pd.ExcelFile(uploaded_file, engine='odf')
+                sheet_names = xls.sheet_names
+
+                if len(sheet_names) > 1:
+                    current_sheet_index = 0
+                    if st.session_state.selected_sheet and st.session_state.selected_sheet in sheet_names:
+                        current_sheet_index = sheet_names.index(st.session_state.selected_sheet)
+                    selected_sheet_name = st.selectbox(
+                        "Escolha uma planilha", 
+                        sheet_names, 
+                        index=current_sheet_index, 
+                        key=f"{uploader_key}_ods_sheet_selector" # Dynamic key for ODS sheet selector
+                    )
+                else:
+                    selected_sheet_name = sheet_names[0]
+                
+                if new_file_uploaded or st.session_state.selected_sheet != selected_sheet_name or st.session_state.df is None:
+                    st.session_state.selected_sheet = selected_sheet_name
+                    df_to_load = pd.read_excel(xls, sheet_name=selected_sheet_name, engine='odf')
+            
+            elif file_extension == "csv":
+                st.session_state.selected_sheet = None # No sheets for CSV
+                if new_file_uploaded or st.session_state.df is None:
+                    df_to_load = pd.read_csv(uploaded_file)
+            
+            if df_to_load is not None:
+                st.session_state.df = df_to_load
+                st.rerun()
+
         except Exception as e:
-            st.error(f"Erro ao processar XLSX: {e}")
+            st.error(f"Erro ao processar o arquivo ({uploaded_file.name}): {e}")
+            # Reset state on error
             st.session_state.uploaded_file_name = None
-            st.session_state.df = None; st.session_state.filters = []; st.session_state.selected_sheet = None
-    elif st.session_state.uploaded_file_name is not None: 
+            st.session_state.df = None
+            st.session_state.filters = []
+            st.session_state.selected_sheet = None
+            st.rerun() # Rerun to clear UI from previous file attempt
+
+    elif st.session_state.uploaded_file_name is not None: # File was removed by user
         st.session_state.uploaded_file_name = None
-        st.session_state.df = None; st.session_state.filters = []; st.session_state.selected_sheet = None
+        st.session_state.df = None
+        st.session_state.filters = []
+        st.session_state.selected_sheet = None
         st.rerun()
 
 def display_filter_controls_in_main(df_columns):

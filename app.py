@@ -10,7 +10,7 @@ from ui_controls import (
 )
 from filter_processing import apply_filters_to_dataframe
 st.set_page_config(layout="wide") 
-APP_TITLE = "Filtro Dinâmico e Análise de XLSX" # Global constant
+APP_TITLE = "Filtro Dinâmico e Análise de Arquivos" # Global constant
 
 # --- Main Application Logic ---
 def main():
@@ -49,7 +49,7 @@ def main():
         display_save_load_filter_sets_controls() # From ui_controls
             
     else:
-        st.info("✨ Bem-vindo! Carregue um arquivo XLSX para começar.")
+        st.info("✨ Bem-vindo! Carregue um arquivo (XLSX, CSV, ODS) para começar.")
 
 if __name__ == "__main__":
     main()
