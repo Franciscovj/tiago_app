@@ -111,5 +111,31 @@
             "column2": "Odd_A_Open",
             "condition": "<"
         }
+    ],
+    "filtro_argentina": [
+        {
+            "type": "column_value",
+            "column": "League",
+            "value": "ARGENTINA - PRIMERA NACIONAL",
+            "condition": "==",
+            "type_display_name": "Valor da Coluna"
+        },
+        {
+            "type": "column_range",
+            "type_display_name": "Range da Coluna",
+            "column": "Odd_H_Open",
+            "value": [
+                1.01,
+                1.99
+            ],
+            "condition": "=="
+        },
+        {
+            "type": "column_comparison",
+            "type_display_name": "Compara\u00e7\u00e3o entre Colunas",
+            "column1": "Odd 2.5FT",
+            "column2": "ODD BTS",
+            "condition": ">"
+        }
     ]
 }

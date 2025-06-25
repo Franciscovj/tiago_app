@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import sys
+from streamlit_cookies_manager import EncryptedCookieManager # Importar
+import datetime # Para timedelta, embora não usado diretamente aqui, mas relacionado
 
 # Add parent directory to path to import sibling modules
 sys.path.append('..') 
@@ -9,7 +11,44 @@ from state_helpers import load_all_filter_sets
 from ui_controls import display_file_uploader
 from filter_processing import apply_filters_to_dataframe
 
+# --- Configuração do Cookie Manager ---
+try:
+    encryption_key = st.secrets["cookies"]["encryption_key"]
+    if encryption_key == "PLEASE_REPLACE_WITH_A_REAL_GENERATED_FERNET_KEY" or len(encryption_key) < 32:
+        st.error("A chave de criptografia de cookies em .streamlit/secrets.toml não é válida ou é um placeholder.")
+        st.stop()
+except (KeyError, FileNotFoundError):
+    st.error("Chave de criptografia para cookies ('cookies.encryption_key') não encontrada em .streamlit/secrets.toml.")
+    st.stop()
+
+cookies = EncryptedCookieManager(key=encryption_key)
+
+
+# --- Lógica de Restauração de Sessão via Cookie ---
+def restore_session_from_cookie_analysis_page():
+    if not cookies.ready():
+        return
+
+    # Só tenta restaurar se não já estiver logado no session_state
+    if not st.session_state.get('logged_in', False):
+        username_from_cookie = cookies.get('user_session_token')
+        if username_from_cookie:
+            st.session_state.logged_in = True
+            st.session_state.username = username_from_cookie
+
 def run_analysis_page():
+    restore_session_from_cookie_analysis_page() # Tenta restaurar sessão no início
+
+    # --- Autenticação ---
+    if not st.session_state.get('logged_in', False):
+        st.warning("⚠️ Por favor, faça login para acessar esta página.")
+        st.page_link("pages/01_Login.py", label="Ir para a Página de Login", icon="🔒")
+        st.stop() 
+
+    # Se logado, pode mostrar quem está logado na sidebar desta página também
+    if st.session_state.get('username'):
+        st.sidebar.success(f"Logado como: {st.session_state.username}")
+
     st.title("📊 Análise de Impacto de Filtros Salvos")
 
     # Session state (df, filters, etc.) is initialized by app.py and shared.

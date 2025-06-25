@@ -24,3 +24,9 @@ utils/
 
 # VSCode settings (caso use)
 .vscode/
+
+# User credentials / data files
+users.json
+named_filters.json 
+# Adicione outros arquivos de dados sensíveis ou gerados aqui
+
